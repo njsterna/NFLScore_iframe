@@ -1,54 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
-    <title>NFL Scoreboard - Xeneon Edge</title>
+    <title>NFL Scoreboard</title>
     <style>
-        /* FORCE BACKGROUND IMMEDIATELY */
+        /* CRITICAL: Force black background on everything immediately */
         html, body {
             background-color: #000000 !important;
             color: #ffffff;
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             overflow: hidden;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: Arial, sans-serif;
         }
 
-        :root {
-            --card-bg: #18181b;
-            --accent: #facc15; 
-            --text-dim: #a1a1aa;
-        }
-
+        /* Basic Layout */
         body {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: column;
             flex-direction: column;
         }
 
-        /* Header / Status Bar */
         .header {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-pack: justify;
+            -ms-flex-pack: justify;
             justify-content: space-between;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
             padding: 10px 20px;
-            background: #111; /* Hardcoded dark grey */
+            background: #111;
             border-bottom: 1px solid #333;
-            font-size: 0.9rem;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 1px;
             flex-shrink: 0;
         }
 
         .live-indicator {
             color: #ef4444;
             font-weight: bold;
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
-            gap: 6px;
         }
 
         .live-dot {
@@ -56,110 +63,91 @@
             height: 8px;
             background-color: #ef4444;
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            margin-right: 8px;
         }
 
-        /* Main Grid Container */
         .scoreboard-container {
+            -webkit-box-flex: 1;
+            -ms-flex-positive: 1;
             flex-grow: 1;
             padding: 10px;
-            display: grid;
-            gap: 10px;
             overflow-y: auto;
-            /* Scrollbar styling for Webkit/iCUE */
-            scrollbar-width: thin;
-            scrollbar-color: #333 #000;
         }
 
-        .scoreboard-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        .scoreboard-container::-webkit-scrollbar-track {
-            background: #000;
-        }
-        .scoreboard-container::-webkit-scrollbar-thumb {
-            background-color: #333;
-            border-radius: 4px;
-        }
-
-        @media (orientation: portrait) {
-            .scoreboard-container { grid-template-columns: 1fr; }
-        }
-        @media (orientation: landscape) {
-            .scoreboard-container { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-        }
-
-        /* Game Card Styling */
         .game-card {
-            background-color: #18181b; /* Hardcoded fallback */
-            background-color: var(--card-bg);
+            background-color: #18181b;
             border: 1px solid #27272a;
             border-radius: 8px;
             padding: 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
+            margin-bottom: 10px;
+            display: block;
         }
 
         .game-status {
-            font-size: 0.75rem;
+            font-size: 12px;
             color: #a1a1aa;
             margin-bottom: 10px;
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-pack: justify;
+            -ms-flex-pack: justify;
             justify-content: space-between;
         }
 
         .team-row {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-pack: justify;
+            -ms-flex-pack: justify;
             justify-content: space-between;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
             margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 1.1rem;
+            font-weight: bold;
+            font-size: 16px;
         }
 
+        .winner { color: #facc15; }
+
         .team-info {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
-            gap: 12px;
         }
 
         .team-logo {
             width: 40px;
             height: 40px;
+            margin-right: 12px;
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
             justify-content: center;
         }
-        
+
         .team-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));
+            max-width: 100%;
+            max-height: 100%;
         }
 
-        /* Fallback for broken images */
-        .team-logo-fallback {
-            width: 100%;
-            height: 100%;
-            background: #333;
-            border-radius: 50%;
+        .score-container {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            color: #888;
-        }
-
-        .score {
-            font-variant-numeric: tabular-nums;
-            font-size: 1.25rem;
-        }
-
-        .winner {
-            color: #facc15;
         }
 
         .possession-indicator {
@@ -167,25 +155,18 @@
             height: 6px;
             background-color: #facc15;
             border-radius: 50%;
-            opacity: 0;
-            margin-right: 4px;
+            margin-right: 6px;
+            display: none; /* Hidden by default */
         }
-        .has-possession { opacity: 1; }
+        .has-possession { display: block; }
 
-        /* Loading State */
+        .score { font-size: 20px; }
+
         .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
+            text-align: center;
             color: #888;
+            margin-top: 20px;
             font-style: italic;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
         }
     </style>
 </head>
@@ -193,23 +174,25 @@
 
     <div class="header">
         <div class="live-indicator">
-            <div class="live-dot"></div> LIVE UPDATES
+            <div class="live-dot"></div> LIVE
         </div>
         <div id="date-display">WEEK 4</div>
     </div>
 
     <div class="scoreboard-container" id="scoreboard">
-        <div class="loading">Loading Games...</div>
+        <div class="loading">Loading...</div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const SIMULATION_MODE = true;
+        // --- LEGACY JAVASCRIPT (ES5) FOR COMPATIBILITY ---
+        
+        var SIMULATION_MODE = true;
+        var scoreboard = document.getElementById('scoreboard');
 
-        // Helper to get logo URL
-        const getLogo = (abbr) => `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr.toLowerCase()}.png`;
+        function getLogo(abbr) {
+            return 'https://a.espncdn.com/i/teamlogos/nfl/500/' + abbr.toLowerCase() + '.png';
+        }
 
-        // --- MOCK DATA GENERATOR ---
         function getMockData() {
             return [
                 {
@@ -251,76 +234,71 @@
             ];
         }
 
-        // --- RENDER LOGIC ---
-        const scoreboard = document.getElementById('scoreboard');
+        function createTeamRow(team, isWinner) {
+            var winnerClass = isWinner ? 'winner' : '';
+            var possessionClass = team.possession ? 'has-possession' : '';
+            
+            // Fallback HTML for image error handled inline
+            var imgHtml = '<img src="' + team.logo + '" onerror="this.parentNode.innerHTML=\'' + team.name + '\'">';
+
+            return '<div class="team-row ' + winnerClass + '">' +
+                   '  <div class="team-info">' +
+                   '    <div class="team-logo">' + imgHtml + '</div>' +
+                   '    <span>' + team.name + '</span>' +
+                   '  </div>' +
+                   '  <div class="score-container">' +
+                   '    <div class="possession-indicator ' + possessionClass + '"></div>' +
+                   '    <span class="score">' + team.score + '</span>' +
+                   '  </div>' +
+                   '</div>';
+        }
 
         function renderGames(games) {
-            scoreboard.innerHTML = ''; 
+            var html = '';
+            
+            for (var i = 0; i < games.length; i++) {
+                var game = games[i];
+                var homeClass = (game.status === 'Final' && game.home.score > game.away.score);
+                var awayClass = (game.status === 'Final' && game.away.score > game.home.score);
 
-            games.forEach(game => {
-                const card = document.createElement('div');
-                card.className = 'game-card';
-                
-                const homeClass = (game.status === 'Final' && game.home.score > game.away.score) ? 'winner' : '';
-                const awayClass = (game.status === 'Final' && game.away.score > game.home.score) ? 'winner' : '';
-
-                // Helper to generate the HTML for a team row
-                const createTeamRow = (team, isWinnerClass) => `
-                    <div class="team-row ${isWinnerClass}">
-                        <div class="team-info">
-                            <div class="team-logo">
-                                <img src="${team.logo}" alt="${team.name}" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'team-logo-fallback\'>${team.name}</div>'">
-                            </div>
-                            <span>${team.name}</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <div class="possession-indicator ${team.possession ? 'has-possession' : ''}"></div>
-                            <span class="score">${team.score}</span>
-                        </div>
-                    </div>
-                `;
-
-                card.innerHTML = `
-                    <div class="game-status">
-                        <span>${game.status}</span>
-                    </div>
-                    ${createTeamRow(game.away, awayClass)}
-                    ${createTeamRow(game.home, homeClass)}
-                `;
-                scoreboard.appendChild(card);
-            });
+                html += '<div class="game-card">';
+                html += '  <div class="game-status"><span>' + game.status + '</span></div>';
+                html +=    createTeamRow(game.away, awayClass);
+                html +=    createTeamRow(game.home, homeClass);
+                html += '</div>';
+            }
+            
+            scoreboard.innerHTML = html;
         }
 
-        // --- SIMULATION LOOP ---
-        function updateSimulation(currentGames) {
-            return currentGames.map(game => {
-                if (!game.status.includes('Final') && !game.status.includes('Halftime')) {
-                    if (Math.random() > 0.9) {
-                        const scoringTeam = Math.random() > 0.5 ? 'home' : 'away';
-                        game[scoringTeam].score += [3, 6, 7][Math.floor(Math.random() * 3)];
-                        game.home.possession = !game.home.possession;
-                        game.away.possession = !game.away.possession;
+        // Initialize
+        var currentData = getMockData();
+        renderGames(currentData);
+
+        // Update Loop
+        setInterval(function() {
+            if (SIMULATION_MODE) {
+                // Simple random score update
+                for (var i = 0; i < currentData.length; i++) {
+                    var game = currentData[i];
+                    if (game.status.indexOf('Final') === -1 && game.status.indexOf('Halftime') === -1) {
+                        if (Math.random() > 0.9) {
+                            var isHome = Math.random() > 0.5;
+                            if (isHome) { 
+                                game.home.score += 3;
+                                game.home.possession = false;
+                                game.away.possession = true;
+                            } else { 
+                                game.away.score += 3;
+                                game.home.possession = true;
+                                game.away.possession = false;
+                            }
+                        }
                     }
                 }
-                return game;
-            });
-        }
-
-        // --- INITIALIZATION ---
-        let currentData = getMockData();
-
-        function init() {
-            renderGames(currentData);
-            
-            setInterval(() => {
-                if (SIMULATION_MODE) {
-                    currentData = updateSimulation(currentData);
-                    renderGames(currentData);
-                }
-            }, 5000); 
-        }
-
-        init();
+                renderGames(currentData);
+            }
+        }, 5000);
 
     </script>
 </body>
