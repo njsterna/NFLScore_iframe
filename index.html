@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Scoreboard - Xeneon Edge</title>
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --card-bg: #18181b;
+            --accent: #facc15; /* Yellow/Gold accent for visibility */
+            --text-main: #ffffff;
+            --text-dim: #a1a1aa;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --animation-speed: 0.5s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            overflow: hidden; /* Prevent scrollbars on the dashboard */
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header / Status Bar */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.5);
+            border-bottom: 1px solid #333;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .live-indicator {
+            color: #ef4444;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* Main Grid Container */
+        .scoreboard-container {
+            flex-grow: 1;
+            padding: 10px;
+            display: grid;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        /* Responsive Grid Logic:
+           - Default (Vertical Mount): 1 column
+           - Ultrawide (Horizontal Mount): 4 columns
+        */
+        @media (orientation: portrait) {
+            .scoreboard-container { grid-template-columns: 1fr; }
+        }
+        @media (orientation: landscape) {
+            .scoreboard-container { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        }
+
+        /* Game Card Styling */
+        .game-card {
+            background-color: var(--card-bg);
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .game-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .game-status {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .team-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Updated Logo Styling */
+        .team-logo {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .team-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        /* Fallback for broken images */
+        .team-logo-fallback {
+            width: 100%;
+            height: 100%;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .score {
+            font-variant-numeric: tabular-nums;
+            font-size: 1.25rem;
+        }
+
+        .winner {
+            color: var(--accent);
+        }
+
+        .possession-indicator {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            margin-right: 4px;
+        }
+        .has-possession { opacity: 1; }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="live-indicator">
+            <div class="live-dot"></div> LIVE UPDATES
+        </div>
+        <div id="date-display">WEEK 4</div>
+    </div>
+
+    <div class="scoreboard-container" id="scoreboard">
+        <div class="loading">Loading Games...</div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const SIMULATION_MODE = true;
+
+        // Helper to get logo URL
+        const getLogo = (abbr) => `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr.toLowerCase()}.png`;
+
+        // --- MOCK DATA GENERATOR ---
+        function getMockData() {
+            return [
+                {
+                    id: 1,
+                    status: "Q4 02:30",
+                    home: { name: "KC", score: 24, logo: getLogo("kc"), possession: true },
+                    away: { name: "BUF", score: 21, logo: getLogo("buf"), possession: false }
+                },
+                {
+                    id: 2,
+                    status: "Q2 14:15",
+                    home: { name: "PHI", score: 10, logo: getLogo("phi"), possession: false },
+                    away: { name: "DAL", score: 7, logo: getLogo("dal"), possession: true }
+                },
+                {
+                    id: 3,
+                    status: "Halftime",
+                    home: { name: "SF", score: 14, logo: getLogo("sf"), possession: false },
+                    away: { name: "SEA", score: 3, logo: getLogo("sea"), possession: false }
+                },
+                {
+                    id: 4,
+                    status: "Q1 08:45",
+                    home: { name: "CIN", score: 0, logo: getLogo("cin"), possession: true },
+                    away: { name: "BAL", score: 3, logo: getLogo("bal"), possession: false }
+                },
+                {
+                    id: 5,
+                    status: "Final",
+                    home: { name: "MIA", score: 35, logo: getLogo("mia"), possession: false },
+                    away: { name: "NE", score: 17, logo: getLogo("ne"), possession: false }
+                },
+                {
+                    id: 6,
+                    status: "Final",
+                    home: { name: "GB", score: 28, logo: getLogo("gb"), possession: false },
+                    away: { name: "CHI", score: 20, logo: getLogo("chi"), possession: false }
+                }
+            ];
+        }
+
+        // --- RENDER LOGIC ---
+        const scoreboard = document.getElementById('scoreboard');
+
+        function renderGames(games) {
+            scoreboard.innerHTML = ''; 
+
+            games.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                
+                const homeClass = (game.status === 'Final' && game.home.score > game.away.score) ? 'winner' : '';
+                const awayClass = (game.status === 'Final' && game.away.score > game.home.score) ? 'winner' : '';
+
+                // Helper to generate the HTML for a team row
+                const createTeamRow = (team, isWinnerClass) => `
+                    <div class="team-row ${isWinnerClass}">
+                        <div class="team-info">
+                            <div class="team-logo">
+                                <img src="${team.logo}" alt="${team.name}" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'team-logo-fallback\'>${team.name}</div>'">
+                            </div>
+                            <span>${team.name}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="possession-indicator ${team.possession ? 'has-possession' : ''}"></div>
+                            <span class="score">${team.score}</span>
+                        </div>
+                    </div>
+                `;
+
+                card.innerHTML = `
+                    <div class="game-status">
+                        <span>${game.status}</span>
+                    </div>
+                    ${createTeamRow(game.away, awayClass)}
+                    ${createTeamRow(game.home, homeClass)}
+                `;
+                scoreboard.appendChild(card);
+            });
+        }
+
+        // --- SIMULATION LOOP ---
+        function updateSimulation(currentGames) {
+            return currentGames.map(game => {
+                if (!game.status.includes('Final') && !game.status.includes('Halftime')) {
+                    if (Math.random() > 0.9) {
+                        const scoringTeam = Math.random() > 0.5 ? 'home' : 'away';
+                        game[scoringTeam].score += [3, 6, 7][Math.floor(Math.random() * 3)];
+                        game.home.possession = !game.home.possession;
+                        game.away.possession = !game.away.possession;
+                    }
+                }
+                return game;
+            });
+        }
+
+        // --- INITIALIZATION ---
+        let currentData = getMockData();
+
+        function init() {
+            renderGames(currentData);
+            
+            setInterval(() => {
+                if (SIMULATION_MODE) {
+                    currentData = updateSimulation(currentData);
+                    renderGames(currentData);
+                }
+            }, 5000); 
+        }
+
+        init();
+
+    </script>
+</body>
+</html>
