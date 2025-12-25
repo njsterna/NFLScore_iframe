@@ -3,31 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>NFL Scoreboard - Xeneon Edge</title>
     <style>
-        :root {
-            --bg-color: #09090b;
-            --card-bg: #18181b;
-            --accent: #facc15; /* Yellow/Gold accent for visibility */
-            --text-main: #ffffff;
-            --text-dim: #a1a1aa;
-            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --animation-speed: 0.5s;
-        }
-
-        * {
-            box-sizing: border-box;
+        /* FORCE BACKGROUND IMMEDIATELY */
+        html, body {
+            background-color: #000000 !important;
+            color: #ffffff;
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --card-bg: #18181b;
+            --accent: #facc15; 
+            --text-dim: #a1a1aa;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: var(--font-family);
-            overflow: hidden; /* Prevent scrollbars on the dashboard */
-            height: 100vh;
-            width: 100vw;
             display: flex;
             flex-direction: column;
         }
@@ -38,7 +35,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 20px;
-            background: rgba(0,0,0,0.5);
+            background: #111; /* Hardcoded dark grey */
             border-bottom: 1px solid #333;
             font-size: 0.9rem;
             text-transform: uppercase;
@@ -69,12 +66,22 @@
             display: grid;
             gap: 10px;
             overflow-y: auto;
+            /* Scrollbar styling for Webkit/iCUE */
+            scrollbar-width: thin;
+            scrollbar-color: #333 #000;
         }
 
-        /* Responsive Grid Logic:
-           - Default (Vertical Mount): 1 column
-           - Ultrawide (Horizontal Mount): 4 columns
-        */
+        .scoreboard-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scoreboard-container::-webkit-scrollbar-track {
+            background: #000;
+        }
+        .scoreboard-container::-webkit-scrollbar-thumb {
+            background-color: #333;
+            border-radius: 4px;
+        }
+
         @media (orientation: portrait) {
             .scoreboard-container { grid-template-columns: 1fr; }
         }
@@ -84,6 +91,7 @@
 
         /* Game Card Styling */
         .game-card {
+            background-color: #18181b; /* Hardcoded fallback */
             background-color: var(--card-bg);
             border: 1px solid #27272a;
             border-radius: 8px;
@@ -92,17 +100,11 @@
             flex-direction: column;
             justify-content: center;
             position: relative;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .game-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
         }
 
         .game-status {
             font-size: 0.75rem;
-            color: var(--text-dim);
+            color: #a1a1aa;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
@@ -123,7 +125,6 @@
             gap: 12px;
         }
 
-        /* Updated Logo Styling */
         .team-logo {
             width: 40px;
             height: 40px;
@@ -158,13 +159,13 @@
         }
 
         .winner {
-            color: var(--accent);
+            color: #facc15;
         }
 
         .possession-indicator {
             width: 6px;
             height: 6px;
-            background-color: var(--accent);
+            background-color: #facc15;
             border-radius: 50%;
             opacity: 0;
             margin-right: 4px;
@@ -177,7 +178,7 @@
             justify-content: center;
             align-items: center;
             height: 100%;
-            color: var(--text-dim);
+            color: #888;
             font-style: italic;
         }
 
